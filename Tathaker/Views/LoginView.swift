@@ -48,7 +48,7 @@ struct LoginView: View {
                     }
                     
                     // Browse as Guest Button
-                    NavigationLink(destination: EventListView()) {
+                    NavigationLink(destination: ContentView()) {
                         Text("Or Browse As Guest")
                             .font(.custom("NunitoSans-Regular", size: 16))
                             .foregroundColor(.black)

@@ -3,7 +3,7 @@ import Firebase
 
 struct EventListView: View {
     @ObservedObject var viewModel = EventViewModel()
-    @State private var searchText = "" // State for search input
+    @State private var searchText = ""
 
     let categories = [
         Category(name: "Concerts", iconName: "music.note"),
@@ -11,7 +11,7 @@ struct EventListView: View {
         Category(name: "Theater", iconName: "theatermasks"),
         Category(name: "Markets", iconName: "cart")
     ]
-
+    
     var filteredEvents: [Event] {
         if searchText.isEmpty {
             return viewModel.events
@@ -24,9 +24,27 @@ struct EventListView: View {
     }
 
     var body: some View {
-        VStack {
-            // Header with logo
-            HeaderView()
+        VStack(spacing: 0) {
+            
+            ZStack (alignment: .top){
+                // ✅ Full-width Dark Blue Background
+                Color(red: 35/255, green: 56/255, blue: 84/255)
+                    .frame(height: 120) // Adjust height to make it cover the top properly
+                    .ignoresSafeArea(edges: .top) // ⬅ Ensure it reaches the top
+                    .ignoresSafeArea(.all)
+
+                // ✅ Centered Tathaker Logo
+                Image("Tathaker")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 120) // ⬅ Adjust logo size
+                    .offset(y: -20) // ⬅ Move it up slightly
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, -10)
+
+            // ✅ Reduce space between the header and search bar
+            .padding(.bottom, -40) // Adjust negative padding to bring the search bar closer
 
             // Search Bar
             HStack {
@@ -71,7 +89,7 @@ struct EventListView: View {
         .onAppear {
             viewModel.fetchEvents()
         }
+        .navigationBarBackButtonHidden(true) // ✅ Remove Back Button
+        .navigationBarHidden(true) // ✅ Hide Navigation Bar
     }
-
-
 }
