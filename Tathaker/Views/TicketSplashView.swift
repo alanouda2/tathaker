@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TicketSplashView: View {
     @State private var isActive = false
+    @EnvironmentObject var userViewModel: UserViewModel // ✅ Inject ViewModel
 
     var body: some View {
         ZStack {
@@ -29,7 +30,7 @@ struct TicketSplashView: View {
             }
         }
         .fullScreenCover(isPresented: $isActive) {
-            LoginView() // Navigate to Login Page after delay
+            LoginView().environmentObject(userViewModel) // Navigate to Login Page after delay
         }
     }
 }

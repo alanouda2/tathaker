@@ -9,23 +9,26 @@ struct EventCard: View {
                 
                 // ✅ Display Image from Asset or URL
                 if let imageName = event.imageName, !imageName.isEmpty {
-                    Image(imageName) // ✅ Use local asset image
+                    Image(imageName)
                         .resizable()
-                        .scaledToFit()
+                        .scaledToFill()  // ✅ Ensure it fills the frame properly
+                        .frame(height: 180)  // ✅ Adjust height for a better look
+                        .clipped()  // ✅ Prevents overflow
                         .cornerRadius(10)
-                        .frame(height: 150)
                 } else if let imageUrl = event.imageUrl, let url = URL(string: imageUrl) {
                     AsyncImage(url: url) { image in
                         image.resizable()
-                            .scaledToFit()
+                            .scaledToFill()  // ✅ Ensure it fills the frame properly
+                            .frame(height: 180)  // ✅ Adjust height
+                            .clipped()  // ✅ Prevents overflow
                             .cornerRadius(10)
                     } placeholder: {
-                        Image(systemName: "photo") // ✅ Placeholder if no valid URL
+                        Image(systemName: "photo")
                             .resizable()
                             .scaledToFit()
                             .cornerRadius(10)
                             .foregroundColor(.gray)
-                            .frame(height: 150)
+                            .frame(height: 180) // ✅ Ensure placeholder matches real images
                     }
                 } else {
                     // ✅ If no image available, show placeholder
@@ -34,7 +37,7 @@ struct EventCard: View {
                         .scaledToFit()
                         .cornerRadius(10)
                         .foregroundColor(.gray)
-                        .frame(height: 150)
+                        .frame(height: 180)
                 }
 
                 // ✅ Event Details
@@ -51,6 +54,8 @@ struct EventCard: View {
                     .foregroundColor(.gray)
             }
             .padding()
+            .frame(maxWidth: UIScreen.main.bounds.width - 40) // ✅ Matches search bar width
+
             .background(Color.white)
             .cornerRadius(20) // ✅ Rounded corners for ticket-like effect
             .shadow(radius: 3)

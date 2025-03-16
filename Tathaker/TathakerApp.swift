@@ -5,6 +5,8 @@ import FirebaseAuth
 @main
 struct TathakerApp: App {
     @State private var isUserLoggedIn = false // Track authentication state
+    @StateObject private var userViewModel = UserViewModel() // ✅ Create global instance
+
 
     init() {
         FirebaseApp.configure()
@@ -15,8 +17,10 @@ struct TathakerApp: App {
         WindowGroup {
             if isUserLoggedIn {
                 MainTabView() // ✅ Show Home, Tickets, Profile
+                    .environmentObject(userViewModel) // ✅ Inject ViewModel in root
+
             } else {
-                TicketSplashView() // ✅ Show login/signup
+                TicketSplashView().environmentObject(userViewModel) // ✅ Show login/signup
             }
         }
     }
