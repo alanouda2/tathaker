@@ -4,20 +4,40 @@ struct EventCard: View {
     let event: Event
 
     var body: some View {
-        NavigationLink(destination: EventDetailsView(event: event)) {
+        NavigationLink(destination: EventDetailView(event: event)) { // ✅ Navigate to EventDetailView
             VStack(alignment: .leading) {
-                if let image = UIImage(named: event.imageUrl) {
-                    Image(uiImage: image)
+                
+                // ✅ Display Image from Asset or URL
+                if let imageName = event.imageName, !imageName.isEmpty {
+                    Image(imageName) // ✅ Use local asset image
                         .resizable()
                         .scaledToFit()
                         .cornerRadius(10)
+                        .frame(height: 150)
+                } else if let imageUrl = event.imageUrl, let url = URL(string: imageUrl) {
+                    AsyncImage(url: url) { image in
+                        image.resizable()
+                            .scaledToFit()
+                            .cornerRadius(10)
+                    } placeholder: {
+                        Image(systemName: "photo") // ✅ Placeholder if no valid URL
+                            .resizable()
+                            .scaledToFit()
+                            .cornerRadius(10)
+                            .foregroundColor(.gray)
+                            .frame(height: 150)
+                    }
                 } else {
-                    Image(systemName: "photo") // Placeholder if no image
+                    // ✅ If no image available, show placeholder
+                    Image(systemName: "photo")
                         .resizable()
                         .scaledToFit()
                         .cornerRadius(10)
+                        .foregroundColor(.gray)
+                        .frame(height: 150)
                 }
 
+                // ✅ Event Details
                 Text(event.title)
                     .font(.headline)
                     .foregroundColor(.primary)
@@ -32,7 +52,7 @@ struct EventCard: View {
             }
             .padding()
             .background(Color.white)
-            .cornerRadius(20) // Ticket-like rounded corners
+            .cornerRadius(20) // ✅ Rounded corners for ticket-like effect
             .shadow(radius: 3)
         }
         .buttonStyle(PlainButtonStyle()) // ✅ Remove default NavigationLink styling
