@@ -4,10 +4,33 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>Promises (Playground).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
 		<key>Tathaker.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>CA40144F2D84F0D900CAB32C</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>CA40145F2D84F0DB00CAB32C</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>CA4014692D84F0DB00CAB32C</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>
