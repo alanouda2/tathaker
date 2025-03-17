@@ -1,74 +1,81 @@
 import SwiftUI
 
 struct EditProfileView: View {
-    @State var user: User
-    @Environment(\.presentationMode) var presentationMode // Allows dismissing the view
-
     var body: some View {
-        VStack {
+        VStack(spacing: 20) {
+            // ✅ HEADER WITH PROFILE PICTURE
             ZStack {
-                Rectangle()
-                    .fill(Color.customDarkBlue)
-                    .frame(height: 120)
+                Color(hex: "#2A4D69") // Dark blue header
+                    .frame(height: 180)
+                    .edgesIgnoringSafeArea(.top)
 
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 100, height: 100)
-                    .offset(y: 50)
+                VStack {
+                    // PROFILE IMAGE (Static)
+                    ZStack {
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: 110, height: 110)
+                            .overlay(
+                                Image(systemName: "person.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 70, height: 70)
+                                    .foregroundColor(.black)
+                            )
+                    }
+                    .offset(y: 20) // Moves the profile picture slightly down
+
+                    Text("Change Picture")
+                        .font(.subheadline)
+                        .foregroundColor(.black)
+                        .padding(.top, 5)
+                }
             }
-            .padding(.bottom, 50)
+            .padding(.bottom, 20) // Pushes entire header down slightly
 
-            Text("Change Picture")
-                .font(.headline)
-
-            VStack(spacing: 15) {
-                CustomTextField(title: "Username", text: $user.name)
-                CustomTextField(title: "Email", text: $user.email)
-                CustomTextField(title: "Phone Number", text: $user.phoneNumber)
+            // ✅ USER INPUT FIELDS (Static)
+            VStack(alignment: .leading, spacing: 15) {
+                CustomTextField(title: "Email", text: .constant("user@example.com"), isDisabled: true)
+                CustomTextField(title: "Phone Number", text: .constant("+123456789"))
             }
-            .padding()
+            .padding(.horizontal)
 
-            Button(action: {
-                // Save changes to Firebase
-                presentationMode.wrappedValue.dismiss()
-            }) {
+            Spacer()
+
+            // ✅ UPDATE BUTTON (No Action for Now)
+            Button(action: {}) {
                 Text("Update")
+                    .bold()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color(hex: "#2A4D69"))
                     .foregroundColor(.white)
-                    .frame(width: 200, height: 50)
-                    .background(Color.customDarkBlue)
                     .cornerRadius(10)
             }
-            .padding(.top, 20)
+            .padding(.horizontal)
         }
-        .background(Color.customLightBlue.edgesIgnoringSafeArea(.all))
+        .background(Color(hex: "#D6E6F2").edgesIgnoringSafeArea(.all))
     }
 }
 
+// ✅ Custom TextField for UI
 struct CustomTextField: View {
-    let title: String
+    var title: String
     @Binding var text: String
+    var isDisabled: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 5) {
             Text(title)
                 .font(.headline)
-            TextField(title, text: $text)
+                .foregroundColor(.black)
+
+            TextField("", text: $text)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(8)
+                .padding(10)
+                .background(Color.white)
+                .cornerRadius(10)
+                .disabled(isDisabled)
         }
-    }
-}
-
-
-
-struct EditProfileView_Previews: PreviewProvider {
-    static var previews: some View {
-        EditProfileView(user: User(
-            id: "123",
-            name: "Alanoud Al Thani",
-            email: "alanoud@example.com",
-            phoneNumber: "+97412345678",
-            profileImage: "https://example.com/profile.jpg"
-        ))
     }
 }

@@ -5,7 +5,6 @@ import FirebaseAuth
 
 
 struct SignUpView: View {
-    @EnvironmentObject var userViewModel: UserViewModel // ✅ Inject ViewModel
 
     @State private var email = ""
 
@@ -16,6 +15,8 @@ struct SignUpView: View {
     @State private var errorMessage: String?
 
     @State private var isUserSignedUp = false
+    
+    @EnvironmentObject var userViewModel: UserViewModel // ✅ Inject ViewModel
 
 
 
@@ -125,8 +126,8 @@ struct SignUpView: View {
 
             .fullScreenCover(isPresented: $isUserSignedUp) {
 
-                MainTabView() // ✅ Show Home, Tickets, Profile
-                    .environmentObject(userViewModel) // ✅ Inject ViewModel in root
+                MainTabView().environmentObject(UserViewModel())
+
             }
 
         }
@@ -167,12 +168,12 @@ struct SignUpView: View {
 
 
 
-struct SignUpView_Previews: PreviewProvider {
+//struct SignUpView_Previews: PreviewProvider {
 
-    static var previews: some View {
+    //static var previews: some View {
 
-        SignUpView()
+        //SignUpView()
 
-    }
+    //}
 
-}
+//}

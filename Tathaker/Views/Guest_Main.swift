@@ -1,24 +1,30 @@
+//
+//  Guest_Main.swift
+//  Tathaker
+//
+//  Created by Bullshit  on 17/03/2025.
+//
 import SwiftUI
 
-struct MainTabView: View {
+struct Guest_MainView: View {
     @EnvironmentObject var userViewModel: UserViewModel // ✅ Ensure global user state
 
     var body: some View {
         TabView {
-            EventListView()
+            Guest_EventListView().environmentObject(userViewModel)
                 .tabItem {
                     Image(systemName: "house.fill")
                     Text("Home")
                 }
 
-            TicketsView()
+            GuestView()
                 .environmentObject(userViewModel) // ✅ Use same instance
                 .tabItem {
                     Image(systemName: "ticket.fill")
                     Text("Tickets")
                 }
 
-            ProfileView()
+            GuestView()
                 .environmentObject(userViewModel) // ✅ Use same instance
                 .tabItem {
                     Image(systemName: "person.fill")
@@ -26,14 +32,5 @@ struct MainTabView: View {
                 }
         }
         .accentColor(Color(red: 35/255, green: 56/255, blue: 84/255)) // ✅ Dark blue tab highlight
-        .navigationBarBackButtonHidden(true) // ✅ Hide default back button
-
     }
 }
-
-
-//struct MainTabView_Previews: PreviewProvider {
-    //static var previews: some View {
-        //MainTabView().environmentObject(UserViewModel()) // ✅ Inject ViewModel
-    //}
-//}

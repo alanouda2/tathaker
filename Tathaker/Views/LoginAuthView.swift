@@ -5,8 +5,6 @@ import FirebaseAuth
 
 
 struct LoginAuthView: View {
-    @EnvironmentObject var userViewModel: UserViewModel // ✅ Inject ViewModel
-
 
     @State private var email = ""
 
@@ -15,7 +13,8 @@ struct LoginAuthView: View {
     @State private var errorMessage: String?
 
     @State private var isUserLoggedIn = false
-
+    
+    @EnvironmentObject var userViewModel: UserViewModel // ✅ Inject ViewModel
 
 
     var body: some View {
@@ -112,8 +111,8 @@ struct LoginAuthView: View {
 
             .fullScreenCover(isPresented: $isUserLoggedIn) {
 
-                MainTabView() // ✅ Show Home, Tickets, Profile
-                    .environmentObject(userViewModel) // ✅ Inject ViewModel in root
+                MainTabView().environmentObject(userViewModel)
+
             }
 
         }
@@ -123,44 +122,35 @@ struct LoginAuthView: View {
 
 
     private func login() {
-
         guard !email.isEmpty, !password.isEmpty else {
-
             errorMessage = "Please enter both email and password."
-
             return
-
         }
-
-
 
         Auth.auth().signIn(withEmail: email, password: password) { result, error in
-
             if let error = error {
-
                 errorMessage = error.localizedDescription
-
             } else {
-
-                isUserLoggedIn = true
-
+                DispatchQueue.main.async {
+                    userViewModel.checkUserStatus() // ✅ Ensure user data updates
+                    if !isUserLoggedIn {
+                                        isUserLoggedIn = true
+                                    }
+                }
             }
-
         }
-
     }
 
 }
 
 
 
-struct LoginAuthView_Previews: PreviewProvider {
+//struct LoginAuthView_Previews: PreviewProvider {
 
-    static var previews: some View {
+    //static var previews: some View {
 
-        LoginAuthView()
+        //LoginAuthView()
 
-    }
+    //}
 
-}
-
+//}

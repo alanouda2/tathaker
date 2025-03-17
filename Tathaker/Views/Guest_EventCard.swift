@@ -1,10 +1,18 @@
+//
+//  Guest_EventCard.swift
+//  Tathaker
+//
+//  Created by Bullshit  on 17/03/2025.
+//
 import SwiftUI
 
-struct EventCard: View {
+struct Guest_EventCard: View {
+    @EnvironmentObject var userViewModel: UserViewModel // ✅ Inject ViewModel
+
     let event: Event
 
     var body: some View {
-        NavigationLink(destination: EventDetailsView(event: event)) { // ✅ Navigate to EventDetailView
+        NavigationLink(destination: Guest_EventDetailsView(event: event).environmentObject(userViewModel) ) { // ✅ Navigate to EventDetailView
             VStack(alignment: .leading) {
                 
                 // ✅ Display Image from Asset or URL
@@ -63,3 +71,4 @@ struct EventCard: View {
         .buttonStyle(PlainButtonStyle()) // ✅ Remove default NavigationLink styling
     }
 }
+

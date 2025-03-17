@@ -1,10 +1,17 @@
+//
+//  Guest_Event.swift
+//  Tathaker
+//
+//  Created by Bullshit  on 17/03/2025.
+//
 import SwiftUI
 import Firebase
 
-struct EventListView: View {
+struct Guest_EventListView: View {
     @ObservedObject var viewModel = EventViewModel()
     @State private var searchText = ""
     @EnvironmentObject var userViewModel: UserViewModel
+    
 
     let categories = [
         Category(name: "Concerts", iconName: "music.note"),
@@ -40,13 +47,13 @@ struct EventListView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(height: 128) // ⬅ Adjust logo size
-                        .offset(y: -120) // ⬅ Move it up slightly
+                        .offset(y: -35) // ⬅ Move it up slightly
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, -10)
 
                 // ✅ Reduce space between the header and search bar
-                .padding(.bottom, -300) // Adjust negative padding to bring the search bar closer
+                .padding(.bottom, -40) // Adjust negative padding to bring the search bar closer
 
                 VStack {
                     // Search Bar
@@ -92,8 +99,8 @@ struct EventListView: View {
                     ScrollView {
                         VStack(spacing: 15) {
                             ForEach(filteredEvents) { event in
-                                NavigationLink(destination: EventDetailsView(event: event)) {
-                                    EventCard(event: event)
+                                NavigationLink(destination: Guest_EventDetailsView(event: event)) {
+                                    Guest_EventCard(event: event)
                                         .frame(maxWidth: UIScreen.main.bounds.width + 60)                                         .padding(.horizontal, 16) // ⬅ Same as search bar
                                 }
                             }
@@ -108,13 +115,8 @@ struct EventListView: View {
             .onAppear {
                 viewModel.fetchEvents()
             }
-            
         }
         .navigationBarBackButtonHidden(true)
         .navigationBarHidden(true)
-        .toolbar(.visible, for: .tabBar) // ✅ Ensures the Tab Bar is always visible
-        .navigationBarBackButtonHidden(true) // ✅ Hide default back button
-
-
     }
 }
