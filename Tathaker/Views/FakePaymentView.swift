@@ -8,24 +8,29 @@ struct FakePaymentView: View {
     @State private var selectedCardIndex = 0
     @State private var userName = "Guest User" // Placeholder, will fetch real name
     @State private var navigateToConfirmation = false
+    @State private var quantity = "1" // Changed to String for user input
+    @FocusState private var isQuantityFocused: Bool
     
-    // Sample cards for selection
+    let basePrice = 50 // Base price per ticket
+    let deliveryCharge = 5
+    
     let userCards: [Card] = [
         Card(bank: "QNB", type: "CREDIT", number: "0000 2363 8364 8269", expiry: "5/25", cvv: "633", provider: "VISA"),
         Card(bank: "QIB", type: "DEBIT", number: "**** **** **** 1234", expiry: "7/26", cvv: "789", provider: "MASTERCARD")
     ]
     
+    var totalAmount: Int {
+        let qty = Int(quantity) ?? 1
+        return (basePrice * qty) + deliveryCharge
+    }
+    
     var body: some View {
         ZStack {
-            Color(hex: "#2A4D69").edgesIgnoringSafeArea(.all) // Dark Theme Background
+            Color(hex: "#2A4D69").edgesIgnoringSafeArea(.all)
             
             VStack(alignment: .leading, spacing: 15) {
-                
-                // ✅ Custom Back Button
                 HStack {
-                    Button(action: {
-                        // Handle back navigation
-                    }) {
+                    Button(action: {}) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.white)
@@ -37,7 +42,6 @@ struct FakePaymentView: View {
                 }
                 .padding(.horizontal)
                 
-                // ✅ Payment Options Section
                 Text("Payment options")
                     .font(.title2)
                     .foregroundColor(.white)
@@ -56,7 +60,6 @@ struct FakePaymentView: View {
                 }
                 .padding(.horizontal)
                 
-                // ✅ Select Your Card Section
                 Text("Select your card")
                     .font(.headline)
                     .foregroundColor(.white)
@@ -64,7 +67,7 @@ struct FakePaymentView: View {
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack {
-                        ForEach(userCards.indices, id: \.self) { index in
+                        ForEach(userCards.indices, id: \ .self) { index in
                             PaymentCardView(card: userCards[index], isSelected: index == selectedCardIndex, userName: userName)
                                 .onTapGesture {
                                     selectedCardIndex = index
@@ -74,21 +77,90 @@ struct FakePaymentView: View {
                     .padding(.horizontal)
                 }
                 
-                // ✅ Order Summary
+                // Quantity Selection
+                VStack(alignment: .leading) {
+                    Text("Select Quantity")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    
+                    HStack {
+                        Button(action: {
+                            let currentQty = Int(quantity) ?? 1
+                            if currentQty > 1 {
+                                quantity = "\(currentQty - 1)"
+                            }
+                            isQuantityFocused = false
+                        }) {
+                            Image(systemName: "minus.circle")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                        }
+                        
+                        TextField("Quantity", text: $quantity)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.center)
+                            .frame(width: 50)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .focused($isQuantityFocused)
+                        
+                        Button(action: {
+                            let currentQty = Int(quantity) ?? 1
+                            quantity = "\(currentQty + 1)"
+                            isQuantityFocused = false
+                        }) {
+                            Image(systemName: "plus.circle")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                
                 VStack(alignment: .leading, spacing: 5) {
-                    SummaryRow(title: "Custom bag", price: "50QAR", isBold: false)
-                    SummaryRow(title: "Delivery charge", price: "5QAR", isBold: false)
+                    SummaryRow(title: "Custom bag", price: "\(basePrice * (Int(quantity) ?? 1))QAR", isBold: false)
+                    SummaryRow(title: "Delivery charge", price: "\(deliveryCharge)QAR", isBold: false)
                     Divider().background(Color.white.opacity(0.5))
-                    SummaryRow(title: "Total amount", price: "65QAR", isBold: true) // Total should be bold
+                    SummaryRow(title: "Total amount", price: "\(totalAmount)QAR", isBold: true)
                 }
                 .padding()
                 .background(Color(hex: "#2A4D69").opacity(0.9))
                 .cornerRadius(10)
                 .padding(.horizontal)
                 
-                // ✅ Book Tickets Button
+//                Button(action: {
+//                    navigateToConfirmation = true
+//                    isQuantityFocused = false // Hide keyboard when booking tickets
+//                }) {
+//                    Text("Book Tickets")
+//                        .foregroundColor(.white)
+//                        .bold()
+//                        .frame(maxWidth: .infinity)
+//                        .padding()
+//                        .background(Color(hex: "#1B365D"))
+//                        .cornerRadius(10)
+//                }
+//                .padding(.horizontal)
                 Button(action: {
-                    navigateToConfirmation = true
+                    isQuantityFocused = false // Hide keyboard
+
+                    let db = Firestore.firestore()
+                    guard let userId = Auth.auth().currentUser?.uid else { return }
+
+                    let bookingData: [String: Any] = [
+                        "eventId": event.id,
+                        "eventTitle": event.title, // Optional, if you want it in the document
+                        "quantity": Int(quantity) ?? 1,
+                        "bookingTime": event.date
+                    ]
+
+                    db.collection("users").document(userId).collection("bookings").addDocument(data: bookingData) { error in
+                        if let error = error {
+                            print("❌ Error saving booking: \(error.localizedDescription)")
+                        } else {
+                            print("✅ Booking saved successfully")
+                            navigateToConfirmation = true
+                        }
+                    }
                 }) {
                     Text("Book Tickets")
                         .foregroundColor(.white)
@@ -100,7 +172,6 @@ struct FakePaymentView: View {
                 }
                 .padding(.horizontal)
                 
-                // ✅ Navigation to Confirmation Page
                 NavigationLink(destination: TicketConfirmationView(event: event), isActive: $navigateToConfirmation) {
                     EmptyView()
                 }
@@ -109,15 +180,19 @@ struct FakePaymentView: View {
                 fetchUserName()
             }
         }
+        .onTapGesture {
+            isQuantityFocused = false
+        }
     }
     
-    // ✅ Fetch User's Name from Firebase
     private func fetchUserName() {
         if let user = Auth.auth().currentUser {
             userName = user.displayName ?? "Guest User"
         }
     }
 }
+
+
 
 // ✅ Structs for Payment Card & Methods
 struct Card {

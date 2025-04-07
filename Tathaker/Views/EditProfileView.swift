@@ -15,83 +15,90 @@ struct EditProfileView: View {
     @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
-        VStack(spacing: 20) {
-            // ✅ HEADER
-            ZStack {
-                Color(hex: "#2A4D69")
-                    .frame(height: 180)
-                    .edgesIgnoringSafeArea(.top)
-
-                VStack {
-                    // Profile Image
-                    if let image = selectedImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFill()
+        ZStack
+        {
+            Color(red: 35/255, green: 56/255, blue: 84/255)
+                .frame(height: 120)
+                .ignoresSafeArea()
+            
+            
+            VStack(spacing: 20) {
+                // ✅ HEADER
+                ZStack {
+                    Color(hex: "#2A4D69")
+                        .frame(height: 180)
+                        .edgesIgnoringSafeArea(.top)
+                    
+                    VStack {
+                        // Profile Image
+                        if let image = selectedImage {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 110, height: 110)
+                                .clipShape(Circle())
+                        } else {
+                            AsyncImage(url: URL(string: profileImageURL)) { image in
+                                image.resizable()
+                                    .scaledToFill()
+                            } placeholder: {
+                                Image(systemName: "person.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 70, height: 70)
+                                    .foregroundColor(.black)
+                            }
                             .frame(width: 110, height: 110)
                             .clipShape(Circle())
-                    } else {
-                        AsyncImage(url: URL(string: profileImageURL)) { image in
-                            image.resizable()
-                                .scaledToFill()
-                        } placeholder: {
-                            Image(systemName: "person.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 70, height: 70)
-                                .foregroundColor(.black)
                         }
-                        .frame(width: 110, height: 110)
-                        .clipShape(Circle())
-                    }
-
-                    // ✅ CHANGE PICTURE BUTTON USING PhotosPicker
-                    PhotosPicker(selection: Binding(
-                        get: { nil },
-                        set: { newItem in
-                            if let newItem = newItem {
-                                loadSelectedImage(newItem)
+                        
+                        // ✅ CHANGE PICTURE BUTTON USING PhotosPicker
+                        PhotosPicker(selection: Binding(
+                            get: { nil },
+                            set: { newItem in
+                                if let newItem = newItem {
+                                    loadSelectedImage(newItem)
+                                }
                             }
+                        ), matching: .images, photoLibrary: .shared()) {
+                            Text("Change Picture")
+                                .font(.subheadline)
+                                .foregroundColor(.black)
+                                .padding(.top, 5)
                         }
-                    ), matching: .images, photoLibrary: .shared()) {
-                        Text("Change Picture")
-                            .font(.subheadline)
-                            .foregroundColor(.black)
-                            .padding(.top, 5)
                     }
                 }
+                .padding(.bottom, 20)
+                
+                // ✅ USERNAME INPUT
+                VStack(alignment: .leading, spacing: 15) {
+                    Text("Username")
+                        .font(.headline)
+                        .foregroundColor(.black)
+                    
+                    TextField("Enter new username", text: $newUsername)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(10)
+                        .background(Color.white)
+                        .cornerRadius(10)
+                }
+                .padding(.horizontal)
+                
+                Spacer()
+                
+                // ✅ SAVE BUTTON
+                Button(action: saveChanges) {
+                    Text("Save Changes")
+                        .bold()
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color(hex: "#2A4D69"))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .padding(.horizontal)
             }
-            .padding(.bottom, 20)
-
-            // ✅ USERNAME INPUT
-            VStack(alignment: .leading, spacing: 15) {
-                Text("Username")
-                    .font(.headline)
-                    .foregroundColor(.black)
-
-                TextField("Enter new username", text: $newUsername)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(10)
-                    .background(Color.white)
-                    .cornerRadius(10)
-            }
-            .padding(.horizontal)
-
-            Spacer()
-
-            // ✅ SAVE BUTTON
-            Button(action: saveChanges) {
-                Text("Save Changes")
-                    .bold()
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(hex: "#2A4D69"))
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            .padding(.horizontal)
         }
-        .background(Color(hex: "#D6E6F2").edgesIgnoringSafeArea(.all))
     }
 
     // ✅ LOAD SELECTED IMAGE FUNCTION

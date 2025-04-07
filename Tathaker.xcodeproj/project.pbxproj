@@ -52,6 +52,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		93A0D2882DA44AB4002D78D6 /* tathaker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = tathaker.xcodeproj; sourceTree = "<group>"; };
 		CA4014502D84F0D900CAB32C /* Tathaker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tathaker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA4014602D84F0DB00CAB32C /* TathakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TathakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA40146A2D84F0DB00CAB32C /* TathakerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TathakerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -125,6 +126,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		93A0D2892DA44AB4002D78D6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		CA4014472D84F0D900CAB32C = {
 			isa = PBXGroup;
 			children = (
@@ -279,6 +287,12 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CA4014512D84F0D900CAB32C /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 93A0D2892DA44AB4002D78D6 /* Products */;
+					ProjectRef = 93A0D2882DA44AB4002D78D6 /* tathaker.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				CA40144F2D84F0D900CAB32C /* Tathaker */,

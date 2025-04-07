@@ -150,7 +150,7 @@ struct Guest_EventDetailsView: View {
         .background(Color(hex: "#2A4D69").edgesIgnoringSafeArea(.all)) // ✅ Full dark background
         .navigationDestination(isPresented: $navigateToLogin) {
             // ✅ Redirecting to LoginView
-            LoginView().environmentObject(userViewModel) 
+            LoginView().environmentObject(userViewModel)
         }
         .navigationBarHidden(true)
     }
