@@ -8,9 +8,34 @@ class UserViewModel: ObservableObject {
     @Published var isLoggedIn: Bool = false // ✅ Add this property
 
     private var db = Firestore.firestore()
+    
+    @Published var totalPoints: Int = 0
 
     init() {
         checkUserStatus() // ✅ Ensure status check at startup
+        fetchUserPoints()
+    }
+    
+    var loyaltyTier: String {
+        switch totalPoints {
+            case 0..<200: return "Bronze"
+            case 200..<500: return "Silver"
+            default: return "Gold"
+        }
+    }
+    
+    
+    func fetchUserPoints() {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+
+        let db = Firestore.firestore()
+        db.collection("users").document(userId).getDocument { document, error in
+            if let document = document, document.exists {
+                self.totalPoints = document.data()?["totalPoints"] as? Int ?? 0
+            } else {
+                self.totalPoints = 0
+            }
+        }
     }
 
     func checkUserStatus() {
@@ -22,7 +47,7 @@ class UserViewModel: ObservableObject {
         } else {
             print("❌ No user logged in. Setting guest mode.")
             DispatchQueue.main.async {
-                self.isGuest = true
+               
                 self.user = nil
                 self.isLoggedIn = false // ✅ Ensure consistency
 
@@ -77,8 +102,9 @@ class UserViewModel: ObservableObject {
         do {
             try Auth.auth().signOut()
             DispatchQueue.main.async {
-                self.isGuest = true
+                
                 self.user = nil
+                self.isLoggedIn = false
             }
             print("🔴 User logged out.")
         } catch {

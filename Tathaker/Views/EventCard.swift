@@ -4,62 +4,64 @@ struct EventCard: View {
     let event: Event
 
     var body: some View {
-        NavigationLink(destination: EventDetailsView(event: event)) { // ✅ Navigate to EventDetailView
-            VStack(alignment: .leading) {
-                
-                // ✅ Display Image from Asset or URL
-                if let imageName = event.imageName, !imageName.isEmpty {
-                    Image(imageName)
-                        .resizable()
-                        .scaledToFill()  // ✅ Ensure it fills the frame properly
-                        .frame(height: 180)  // ✅ Adjust height for a better look
-                        .clipped()  // ✅ Prevents overflow
+        VStack(alignment: .leading, spacing: 3) {
+            // ✅ Image
+            if let imageName = event.imageName, !imageName.isEmpty {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 100)
+                    .clipped()
+                    .cornerRadius(10)
+            } else if let imageUrl = event.imageUrl, let url = URL(string: imageUrl) {
+                AsyncImage(url: url) { image in
+                    image.resizable()
+                        .scaledToFill()
+                        .frame(height: 100)
+                        .clipped()
                         .cornerRadius(10)
-                } else if let imageUrl = event.imageUrl, let url = URL(string: imageUrl) {
-                    AsyncImage(url: url) { image in
-                        image.resizable()
-                            .scaledToFill()  // ✅ Ensure it fills the frame properly
-                            .frame(height: 180)  // ✅ Adjust height
-                            .clipped()  // ✅ Prevents overflow
-                            .cornerRadius(10)
-                    } placeholder: {
-                        Image(systemName: "photo")
-                            .resizable()
-                            .scaledToFit()
-                            .cornerRadius(10)
-                            .foregroundColor(.gray)
-                            .frame(height: 180) // ✅ Ensure placeholder matches real images
-                    }
-                } else {
-                    // ✅ If no image available, show placeholder
+                } placeholder: {
                     Image(systemName: "photo")
                         .resizable()
-                        .scaledToFit()
-                        .cornerRadius(10)
+                        .scaledToFill()
+                        .frame(height: 100)
                         .foregroundColor(.gray)
-                        .frame(height: 180)
+                        .cornerRadius(10)
                 }
-
-                // ✅ Event Details
-                Text(event.title)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-
-                Text(event.date)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                Text(event.location)
-                    .font(.subheadline)
+                
+            } else {
+                Image(systemName: "photo")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 100)
                     .foregroundColor(.gray)
+                    .cornerRadius(10)
             }
-            .padding()
-            .frame(maxWidth: UIScreen.main.bounds.width - 40) // ✅ Matches search bar width
 
-            .background(Color.white)
-            .cornerRadius(20) // ✅ Rounded corners for ticket-like effect
-            .shadow(radius: 3)
+            // ✅ Event Info
+            Text(event.title)
+                .font(.system(size: 12, weight: .bold))
+                .lineLimit(2)
+                .frame(height: 25)
+                .multilineTextAlignment(.leading)
+                .padding(.top, 10)
+                
+
+            Text(event.date)
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+                .frame(height: 15, alignment: .top)
+
+            Text(event.location)
+                .font(.system(size: 10))
+                .foregroundColor(.gray)
+                .lineLimit(2)
+                .frame(height: 30, alignment: .top)
+                .multilineTextAlignment(.leading)
         }
-        .buttonStyle(PlainButtonStyle()) // ✅ Remove default NavigationLink styling
+        //.padding(10)
+       // .cornerRadius(12)
+        //.shadow(radius: 2)
+        .padding(.horizontal, 20)
     }
 }

@@ -9,17 +9,20 @@ import FirebaseAuth
 struct LoginView: View {
 
     @State private var navigateToLogin = false
+    @State private var navigateToGuest = false
 
     @State private var navigateToSignUp = false
     @EnvironmentObject var userViewModel: UserViewModel // ✅ Inject ViewModel
+    
+   
 
     var body: some View {
 
-        NavigationStack {
+        //NavigationStack {
 
             VStack(spacing: 20) {
-
-                Spacer()
+                
+                
 
 
 
@@ -90,6 +93,7 @@ struct LoginView: View {
                     Button(action: {
 
                         navigateToSignUp = true
+                        userViewModel.isGuest = false
 
                     }) {
 
@@ -130,9 +134,16 @@ struct LoginView: View {
 
 
                 // Browse as Guest
+                
+                
+                Button(action: {
 
-                NavigationLink(destination: Guest_MainView().environmentObject(userViewModel)) {
+                  
+                    userViewModel.isGuest = true
+                    navigateToGuest = true
+                    userViewModel.checkUserStatus()
 
+                }) {
                     Text("Or Browse As Guest")
 
                         .font(.custom("NunitoSans-Regular", size: 16))
@@ -142,6 +153,8 @@ struct LoginView: View {
                         .padding(.top, 10)
 
                 }
+
+               
 
 
 
@@ -155,7 +168,7 @@ struct LoginView: View {
 
         }
 
-    }
+    //}
 
 }
 

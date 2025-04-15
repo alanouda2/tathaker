@@ -7,30 +7,49 @@
 import SwiftUI
 
 struct Guest_MainView: View {
-    @EnvironmentObject var userViewModel: UserViewModel // ✅ Ensure global user state
+    @EnvironmentObject var userViewModel: UserViewModel
+    @EnvironmentObject var tabRouter: TabRouter
 
     var body: some View {
         TabView {
-            Guest_EventListView().environmentObject(userViewModel)
-                .tabItem {
-                    Image(systemName: "house.fill")
-                    Text("Home")
-                }
+            NavigationStack {
+                EventListView()
+            }
+            .tabItem {
+                Image(systemName: "house.fill")
+                Text("Home")
+            }
 
-            GuestView()
-                .environmentObject(userViewModel) // ✅ Use same instance
-                .tabItem {
-                    Image(systemName: "ticket.fill")
-                    Text("Tickets")
-                }
+            NavigationStack {
+                GuestView()
+                    .environmentObject(userViewModel)
+            }
+            .tabItem {
+                Image(systemName: "ticket.fill")
+                Text("Tickets")
+                    
+            }
+            
+            NavigationStack {
+                GuestView()
+               }
+               .tabItem {
+                   Image(systemName: "arrow.2.squarepath") // or another icon like "repeat"
+                   Text("Resell")
+               }
 
-            GuestView()
-                .environmentObject(userViewModel) // ✅ Use same instance
-                .tabItem {
-                    Image(systemName: "person.fill")
-                    Text("Profile")
-                }
+            NavigationStack {
+                GuestView()
+                    .environmentObject(userViewModel)
+            }
+            .tabItem {
+                Image(systemName: "person.fill")
+                Text("Profile")
+            }
+            
+            
         }
-        .accentColor(Color(red: 35/255, green: 56/255, blue: 84/255)) // ✅ Dark blue tab highlight
+        .accentColor(Color(red: 35/255, green: 56/255, blue: 84/255))
     }
 }
+

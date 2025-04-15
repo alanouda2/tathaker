@@ -1,100 +1,92 @@
 import SwiftUI
 import Firebase
-import FirebaseStorage
 import FirebaseAuth
-import PhotosUI // ✅ Import for SwiftUI's PhotosPicker
+import PhotosUI
 
 struct EditProfileView: View {
     @Binding var username: String
     @Binding var profileImageURL: String
-    @Binding var refreshTrigger: Bool // ✅ Added this
+    @Binding var refreshTrigger: Bool
 
     @State private var newUsername: String = ""
-    @State private var selectedImageData: Data? // ✅ Store selected image data
+    @State private var selectedImageData: Data?
     @State private var selectedImage: UIImage?
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss
+    
+    @Binding var showView : Bool
 
     var body: some View {
-        VStack(spacing: 20) {
-            // ✅ HEADER
-            ZStack {
-                Color(hex: "#2A4D69")
-                    .frame(height: 180)
-                    .edgesIgnoringSafeArea(.top)
-
-                VStack {
-                    // Profile Image
-                    if let image = selectedImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 110, height: 110)
-                            .clipShape(Circle())
-                    } else {
-                        AsyncImage(url: URL(string: profileImageURL)) { image in
-                            image.resizable()
+        ZStack {
+            VStack(spacing: 20) {
+                ZStack {
+                    VStack {
+                        if let image = selectedImage {
+                            Image(uiImage: image)
+                                .resizable()
                                 .scaledToFill()
-                        } placeholder: {
+                                .frame(width: 110, height: 110)
+                                .clipShape(Circle())
+                        } else if let localImage = loadLocalImage() {
+                            Image(uiImage: localImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 110, height: 110)
+                                .clipShape(Circle())
+                        } else {
                             Image(systemName: "person.fill")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 70, height: 70)
                                 .foregroundColor(.black)
                         }
-                        .frame(width: 110, height: 110)
-                        .clipShape(Circle())
-                    }
 
-                    // ✅ CHANGE PICTURE BUTTON USING PhotosPicker
-                    PhotosPicker(selection: Binding(
-                        get: { nil },
-                        set: { newItem in
-                            if let newItem = newItem {
-                                loadSelectedImage(newItem)
+                        PhotosPicker(selection: Binding(
+                            get: { nil },
+                            set: { newItem in
+                                if let newItem = newItem {
+                                    loadSelectedImage(newItem)
+                                }
                             }
+                        ), matching: .images, photoLibrary: .shared()) {
+                            Text("Change Picture")
+                                .font(.subheadline)
+                                .foregroundColor(.black)
+                                .padding(.top, 5)
                         }
-                    ), matching: .images, photoLibrary: .shared()) {
-                        Text("Change Picture")
-                            .font(.subheadline)
-                            .foregroundColor(.black)
-                            .padding(.top, 5)
                     }
+                    .padding(.top)
                 }
+                .padding(.bottom, 20)
+
+                VStack(alignment: .leading, spacing: 15) {
+                    Text("Username")
+                        .font(.headline)
+                        .foregroundColor(.black)
+
+                    TextField("Enter new username", text: $newUsername)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(10)
+                        .background(Color.white)
+                        .cornerRadius(10)
+                }
+                .padding(.horizontal)
+
+                Spacer()
+
+                Button(action: saveChanges) {
+                    Text("Save Changes")
+                        .bold()
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color(hex: "#2A4D69"))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .padding(.horizontal)
             }
-            .padding(.bottom, 20)
-
-            // ✅ USERNAME INPUT
-            VStack(alignment: .leading, spacing: 15) {
-                Text("Username")
-                    .font(.headline)
-                    .foregroundColor(.black)
-
-                TextField("Enter new username", text: $newUsername)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(10)
-                    .background(Color.white)
-                    .cornerRadius(10)
-            }
-            .padding(.horizontal)
-
-            Spacer()
-
-            // ✅ SAVE BUTTON
-            Button(action: saveChanges) {
-                Text("Save Changes")
-                    .bold()
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(hex: "#2A4D69"))
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            .padding(.horizontal)
         }
-        .background(Color(hex: "#D6E6F2").edgesIgnoringSafeArea(.all))
     }
 
-    // ✅ LOAD SELECTED IMAGE FUNCTION
     private func loadSelectedImage(_ item: PhotosPickerItem) {
         item.loadTransferable(type: Data.self) { result in
             DispatchQueue.main.async {
@@ -106,62 +98,58 @@ struct EditProfileView: View {
         }
     }
 
-    // ✅ SAVE CHANGES FUNCTION
     private func saveChanges() {
         guard let userID = Auth.auth().currentUser?.uid else { return }
         let db = Firestore.firestore()
         var updates: [String: Any] = [:]
 
-        // ✅ Update username if changed
         if !newUsername.isEmpty {
             updates["username"] = newUsername
         }
 
-        // ✅ If an image is selected, upload it first
         if let selectedImageData = selectedImageData {
-            uploadImage(selectedImageData) { url in
-                if let url = url {
-                    updates["profileImageURL"] = url.absoluteString
-                }
-                self.updateFirestore(db: db, userID: userID, updates: updates)
+            if let fileURL = saveImageLocally(selectedImageData) {
+                print("✅ Image saved locally at: \(fileURL.path)")
             }
-        } else {
-            self.updateFirestore(db: db, userID: userID, updates: updates)
         }
+
+        updateFirestore(db: db, userID: userID, updates: updates)
     }
 
-    // ✅ FUNCTION TO UPDATE FIRESTORE WITH NEW DATA
     private func updateFirestore(db: Firestore, userID: String, updates: [String: Any]) {
         db.collection("users").document(userID).updateData(updates) { error in
-            if error == nil {
-                DispatchQueue.main.async {
-                    // ✅ Update local values
-                    if let newName = updates["username"] as? String {
-                        self.username = newName
-                    }
-                    if let newProfileURL = updates["profileImageURL"] as? String {
-                        self.profileImageURL = newProfileURL
-                    }
-                    self.refreshTrigger.toggle() // ✅ Notify ProfileView to refresh
-                    self.presentationMode.wrappedValue.dismiss()
+            DispatchQueue.main.async {
+                if let newName = updates["username"] as? String {
+                    self.username = newName
                 }
+                self.refreshTrigger.toggle()
+                self.showView = false
             }
         }
     }
 
-    // ✅ UPLOAD IMAGE FUNCTION
-    private func uploadImage(_ imageData: Data, completion: @escaping (URL?) -> Void) {
-        guard let userID = Auth.auth().currentUser?.uid else { return }
-        let storageRef = Storage.storage().reference().child("profileImages/\(userID).jpg")
+    private func saveImageLocally(_ imageData: Data) -> URL? {
+        let fileManager = FileManager.default
+        guard let userID = Auth.auth().currentUser?.uid else { return nil }
 
-        storageRef.putData(imageData, metadata: nil) { _, error in
-            if error == nil {
-                storageRef.downloadURL { url, _ in
-                    completion(url)
-                }
-            } else {
-                completion(nil)
-            }
+        let folder = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let fileURL = folder.appendingPathComponent("profile_\(userID).jpg")
+
+        do {
+            try imageData.write(to: fileURL)
+            return fileURL
+        } catch {
+            print("❌ Failed to save image: \(error)")
+            return nil
         }
+    }
+
+    private func loadLocalImage() -> UIImage? {
+        guard let userID = Auth.auth().currentUser?.uid else { return nil }
+        let folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let fileURL = folder.appendingPathComponent("profile_\(userID).jpg")
+        return UIImage(contentsOfFile: fileURL.path)
     }
 }
+
+

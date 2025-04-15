@@ -6,118 +6,234 @@ struct FakePaymentView: View {
     let event: Event
     @State private var selectedPaymentMethod = "Credit Card"
     @State private var selectedCardIndex = 0
-    @State private var userName = "Guest User" // Placeholder, will fetch real name
+    @State private var userName = "Guest User"
     @State private var navigateToConfirmation = false
+    @State private var quantity = "1"
+    @FocusState private var isQuantityFocused: Bool
     
-    // Sample cards for selection
+    @Environment(\.dismiss) var dismiss
+
+    let basePrice = 50
+
     let userCards: [Card] = [
         Card(bank: "QNB", type: "CREDIT", number: "0000 2363 8364 8269", expiry: "5/25", cvv: "633", provider: "VISA"),
         Card(bank: "QIB", type: "DEBIT", number: "**** **** **** 1234", expiry: "7/26", cvv: "789", provider: "MASTERCARD")
     ]
+
+    var totalAmount: Int {
+        let qty = Int(quantity) ?? 1
+        return basePrice * qty
+    }
     
+    @Binding var openHome : Bool
+
     var body: some View {
-        ZStack {
-            Color(hex: "#2A4D69").edgesIgnoringSafeArea(.all) // Dark Theme Background
-            
-            VStack(alignment: .leading, spacing: 15) {
+        
+            ZStack {
                 
-                // ✅ Custom Back Button
-                HStack {
-                    Button(action: {
-                        // Handle back navigation
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                    Spacer()
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 20, weight: .bold))
+                
+                
+                Color(hex: "#2A4D69").ignoresSafeArea()
+
+                VStack(alignment: .leading, spacing: 15) {
+                    Text("Payment options")
+                        .font(.title2)
                         .foregroundColor(.white)
-                }
-                .padding(.horizontal)
-                
-                // ✅ Payment Options Section
-                Text("Payment options")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .bold()
+                        .bold()
+                        .padding(.horizontal)
+
+                    HStack(spacing: 20) {
+                        PaymentMethodIcon(systemName: "creditcard.fill", isSelected: selectedPaymentMethod == "Credit Card")
+                            .onTapGesture { selectedPaymentMethod = "Credit Card" }
+
+                        PaymentMethodIcon(imageName: "paypal", isSelected: selectedPaymentMethod == "PayPal")
+                            .onTapGesture { selectedPaymentMethod = "PayPal" }
+
+                        PaymentMethodIcon(imageName: "applepay", isSelected: selectedPaymentMethod == "Apple Pay")
+                            .onTapGesture { selectedPaymentMethod = "Apple Pay" }
+                    }
                     .padding(.horizontal)
-                
-                HStack(spacing: 20) {
-                    PaymentMethodIcon(systemName: "creditcard.fill", isSelected: selectedPaymentMethod == "Credit Card")
-                        .onTapGesture { selectedPaymentMethod = "Credit Card" }
-                    
-                    PaymentMethodIcon(imageName: "paypal", isSelected: selectedPaymentMethod == "PayPal")
-                        .onTapGesture { selectedPaymentMethod = "PayPal" }
-                    
-                    PaymentMethodIcon(imageName: "applepay", isSelected: selectedPaymentMethod == "Apple Pay")
-                        .onTapGesture { selectedPaymentMethod = "Apple Pay" }
-                }
-                .padding(.horizontal)
-                
-                // ✅ Select Your Card Section
-                Text("Select your card")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding(.horizontal)
-                
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
-                        ForEach(userCards.indices, id: \.self) { index in
-                            PaymentCardView(card: userCards[index], isSelected: index == selectedCardIndex, userName: userName)
-                                .onTapGesture {
-                                    selectedCardIndex = index
+
+                    Text("Select your card")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding(.horizontal)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack {
+                            ForEach(userCards.indices, id: \ .self) { index in
+                                PaymentCardView(card: userCards[index], isSelected: index == selectedCardIndex, userName: userName)
+                                    .onTapGesture {
+                                        selectedCardIndex = index
+                                    }
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+
+                    VStack(alignment: .leading) {
+                        Text("Select Quantity")
+                            .font(.headline)
+                            .foregroundColor(.white)
+
+                        HStack {
+                            Button(action: {
+                                let currentQty = Int(quantity) ?? 1
+                                if currentQty > 1 {
+                                    quantity = "\(currentQty - 1)"
                                 }
+                                isQuantityFocused = false
+                            }) {
+                                Image(systemName: "minus.circle")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                            }
+
+                            TextField("Quantity", text: $quantity)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.center)
+                                .frame(width: 50)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .focused($isQuantityFocused)
+
+                            Button(action: {
+                                let currentQty = Int(quantity) ?? 1
+                                quantity = "\(currentQty + 1)"
+                                isQuantityFocused = false
+                            }) {
+                                Image(systemName: "plus.circle")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                            }
                         }
                     }
                     .padding(.horizontal)
+
+                    VStack(alignment: .leading, spacing: 5) {
+                        SummaryRow(title: "Custom bag", price: "\(basePrice * (Int(quantity) ?? 1))QAR", isBold: false)
+                        Divider().background(Color.white.opacity(0.5))
+                        SummaryRow(title: "Total amount", price: "\(totalAmount)QAR", isBold: true)
+                    }
+                    .padding()
+                    .background(Color(hex: "#2A4D69").opacity(0.9))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+
+                    Button(action: {
+                        isQuantityFocused = false
+                        let db = Firestore.firestore()
+                        guard let userId = Auth.auth().currentUser?.uid else { return }
+
+                        let bookingData: [String: Any] = [
+                            "eventId": event.id,
+                            "eventTitle": event.title,
+                            "quantity": Int(quantity) ?? 1,
+                            "bookingTime": event.date,
+                            "isResell": false,
+                            "imageUrl": event.imageUrl ?? ""
+                        ]
+
+                        db.collection("users").document(userId).collection("bookings").addDocument(data: bookingData) { error in
+                            if let error = error {
+                                print("❌ Error saving booking: \(error.localizedDescription)")
+                            } else {
+                                print("✅ Booking saved successfully")
+                                //navigateToConfirmation = true
+                               
+                                
+                                NavigationCoordinator.shared.ticketConfirmationData = event
+                                 // Switch to Home tab
+                               
+                              
+                                    NavigationCoordinator.shared.selectedTab = 0
+                            
+                                
+                            }
+                        }
+                        
+                        
+                        let earnedPoints = (Int(quantity) ?? 1) * 10  // 10 points per ticket
+
+                        db.collection("users").document(userId).updateData([
+                            "totalPoints": FieldValue.increment(Int64(earnedPoints))
+                        ]) { err in
+                            if let err = err {
+                                print("❌ Error updating points: \(err)")
+                            } else {
+                                print("✅ Points updated")
+                            }
+                        }
+                        
+                        
+                        
+                    }) {
+                        Text("Book Tickets")
+                            .foregroundColor(.white)
+                            .bold()
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color(hex: "#1B365D"))
+                            .cornerRadius(10)
+                    }
+                    .padding(.horizontal)
+
+//                    NavigationLink(destination: TicketConfirmationView(event: event), isActive: $navigateToConfirmation) {
+//                        EmptyView()
+//                    }
                 }
-                
-                // ✅ Order Summary
-                VStack(alignment: .leading, spacing: 5) {
-                    SummaryRow(title: "Custom bag", price: "50QAR", isBold: false)
-                    SummaryRow(title: "Delivery charge", price: "5QAR", isBold: false)
-                    Divider().background(Color.white.opacity(0.5))
-                    SummaryRow(title: "Total amount", price: "65QAR", isBold: true) // Total should be bold
+                .onAppear {
+                    fetchUserName()
+                    
                 }
-                .padding()
-                .background(Color(hex: "#2A4D69").opacity(0.9))
-                .cornerRadius(10)
-                .padding(.horizontal)
-                
-                // ✅ Book Tickets Button
-                Button(action: {
-                    navigateToConfirmation = true
-                }) {
-                    Text("Book Tickets")
+            }
+            .toolbarBackground(Color(hex: "#2A4D69"), for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        isQuantityFocused = false
+                        navigateToConfirmation = false
+                        dismiss()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .foregroundColor(.white)
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Image(systemName: "square.and.arrow.up")
                         .foregroundColor(.white)
-                        .bold()
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(hex: "#1B365D"))
-                        .cornerRadius(10)
+                        .onTapGesture(perform: {
+                            shareEvent()
+                        })
                 }
-                .padding(.horizontal)
-                
-                // ✅ Navigation to Confirmation Page
-                NavigationLink(destination: TicketConfirmationView(event: event), isActive: $navigateToConfirmation) {
-                    EmptyView()
-                }
-            }
-            .onAppear {
-                fetchUserName()
-            }
+            
+        }
+        .onTapGesture {
+            isQuantityFocused = false
         }
     }
     
-    // ✅ Fetch User's Name from Firebase
+    private func shareEvent() {
+        let text = "Check out this event: \(event.title) at \(event.location)"
+        let activityVC = UIActivityViewController(activityItems: [text], applicationActivities: nil)
+
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            rootVC.present(activityVC, animated: true)
+        }
+    }
+
     private func fetchUserName() {
         if let user = Auth.auth().currentUser {
             userName = user.displayName ?? "Guest User"
         }
     }
 }
+
+// Card, PaymentMethodIcon, PaymentCardView, SummaryRow remain unchanged...
+
+
+
 
 // ✅ Structs for Payment Card & Methods
 struct Card {

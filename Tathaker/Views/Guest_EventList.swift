@@ -78,7 +78,7 @@ struct Guest_EventListView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 20) {
                             ForEach(categories) { category in
-                                CategoryIcon(category: category)
+                                CategoryIcon(category: category, selectedCategory: Binding.constant("Sports"))
                             }
                         }
                         .padding(.horizontal)

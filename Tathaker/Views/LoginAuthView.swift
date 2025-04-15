@@ -12,8 +12,8 @@ struct LoginAuthView: View {
 
     @State private var errorMessage: String?
 
-    @State private var isUserLoggedIn = false
     
+    @Environment(\.dismiss) var dismiss
     @EnvironmentObject var userViewModel: UserViewModel // ✅ Inject ViewModel
 
 
@@ -22,6 +22,21 @@ struct LoginAuthView: View {
         NavigationStack {
 
             VStack(spacing: 20) {
+                
+                HStack {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "chevron.left")
+                        Text("Back")
+                    }
+                    .foregroundColor(.black)
+                    .padding(.leading)
+
+                    Spacer()
+                }
+
+           
 
                 Spacer()
 
@@ -35,7 +50,7 @@ struct LoginAuthView: View {
 
                     .multilineTextAlignment(.center)
 
-                    .padding(.bottom, 15)
+                    .padding(.bottom, 30)
 
 
 
@@ -109,11 +124,11 @@ struct LoginAuthView: View {
 
             .background(Color(hex: "#D6E6F2").edgesIgnoringSafeArea(.all))
 
-            .fullScreenCover(isPresented: $isUserLoggedIn) {
-
-                MainTabView().environmentObject(userViewModel)
-
-            }
+//            .fullScreenCover(isPresented: $isUserLoggedIn) {
+//
+//                MainTabView().environmentObject(userViewModel)
+//
+//            }
 
         }
 
@@ -133,9 +148,7 @@ struct LoginAuthView: View {
             } else {
                 DispatchQueue.main.async {
                     userViewModel.checkUserStatus() // ✅ Ensure user data updates
-                    if !isUserLoggedIn {
-                                        isUserLoggedIn = true
-                                    }
+                    
                 }
             }
         }

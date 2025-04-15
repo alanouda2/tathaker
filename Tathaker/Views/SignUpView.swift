@@ -1,7 +1,7 @@
 import SwiftUI
 
 import FirebaseAuth
-
+import FirebaseFirestore
 
 
 struct SignUpView: View {
@@ -17,7 +17,8 @@ struct SignUpView: View {
     @State private var isUserSignedUp = false
     
     @EnvironmentObject var userViewModel: UserViewModel // ✅ Inject ViewModel
-
+    @Environment(\.dismiss) var dismiss
+    @StateObject var tabRouter = TabRouter()
 
 
     var body: some View {
@@ -25,6 +26,19 @@ struct SignUpView: View {
         NavigationStack {
 
             VStack(spacing: 16) {
+                
+                HStack {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "chevron.left")
+                        Text("Back")
+                    }
+                    .foregroundColor(.black)
+                    .padding(.leading)
+
+                    Spacer()
+                }
 
                 Spacer()
 
@@ -38,7 +52,7 @@ struct SignUpView: View {
 
                     .multilineTextAlignment(.center)
 
-                    .padding(.bottom, 15)
+                    .padding(.bottom, 30)
 
                 
 
@@ -127,6 +141,7 @@ struct SignUpView: View {
             .fullScreenCover(isPresented: $isUserSignedUp) {
 
                 MainTabView().environmentObject(UserViewModel())
+                    .environmentObject(tabRouter)
 
             }
 
@@ -137,31 +152,30 @@ struct SignUpView: View {
 
 
     private func signUp() {
-
         guard !email.isEmpty, !password.isEmpty, password == confirmPassword else {
-
             errorMessage = "Passwords do not match or fields are empty."
-
             return
-
         }
-
-
 
         Auth.auth().createUser(withEmail: email, password: password) { result, error in
-
             if let error = error {
-
                 errorMessage = error.localizedDescription
-
-            } else {
+            } else if let user = result?.user {
+                let db = Firestore.firestore()
+                db.collection("users").document(user.uid).setData([
+                    "email": user.email ?? "",
+                    "createdAt": Timestamp()
+                ]) { error in
+                    if let error = error {
+                        print("❌ Failed to create Firestore user document: \(error)")
+                    } else {
+                        print("✅ Firestore user document created.")
+                    }
+                }
 
                 isUserSignedUp = true
-
             }
-
         }
-
     }
 
 }
